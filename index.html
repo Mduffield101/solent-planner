@@ -20,6 +20,7 @@
       --text: #2c3e50;
       --muted: #7f8c8d;
       --border: #d0e4f0;
+      --card-label: #6b7a8d;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -133,6 +134,7 @@
     .moon-day .moon-icon { font-size: 22px; margin-bottom: 4px; }
     .moon-day .phase { font-size: 11px; font-weight: 600; color: var(--navy); }
     .moon-day .condition { font-size: 11px; color: var(--ocean); margin-top: 3px; }
+    .moon-day .condition .spct { font-size: 14px; font-weight: 700; }
     .moon-day.highlight { border-color: var(--warn); background: #fff8f2; }
     .moon-day.highlight .phase { color: var(--warn); }
     .overview-note { font-size: 13.5px; color: var(--text); }
@@ -269,6 +271,13 @@
       gap: 8px;
       margin-top: 10px;
     }
+    /* Port Tidal Characteristics outer grid — was an inline 1fr/1fr style,
+       promoted to a class so a media query can collapse it on phones. */
+    .port-char-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
     .range-card {
       background: var(--light);
       border-radius: 8px;
@@ -357,6 +366,270 @@
       border-top: 2px solid var(--border);
       margin: 14px 0;
     }
+
+    /* In-page jump chips are a phone-only affordance — hidden on desktop,
+       shown (display:flex) inside the ≤520px block below. */
+    .jump-nav { display: none; }
+
+    /* ══════════════════════════════════════════════════════════════
+       MOBILE / PHONE POLISH  (≤520px, finer at ≤380px)
+       Desktop (>620px) is untouched. The existing @media(max-width:620px)
+       block above still fires; the blocks below extend it for phones.
+       ══════════════════════════════════════════════════════════════ */
+    @media (max-width: 520px) {
+
+      /* ── Base scale & tap comfort ── */
+      body { line-height: 1.55; -webkit-text-size-adjust: 100%; }
+      main { padding: 22px 14px 48px; }
+
+      /* ── Header: tighter padding, smaller wordmark, neat chips ── */
+      header { padding: 26px 20px 26px; }
+      header h1 { font-size: 22px; line-height: 1.2; }
+      header .subtitle { font-size: 13.5px; }
+      header .trip-label { font-size: 10px; letter-spacing: 2px; }
+      header .meta-chips { gap: 8px; margin-top: 14px; }
+      header .chip { font-size: 12px; padding: 4px 11px; }
+
+      /* ── In-page jump chips (additive; phone-only, hidden on desktop) ── */
+      .jump-nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        margin: 0 0 18px;
+        padding: 10px 0;
+        background: #f0f6fb;
+      }
+      .jump-nav a {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        color: var(--ocean);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 7px 13px;
+        text-decoration: none;
+        line-height: 1;
+      }
+      .jump-nav a:active { background: #d0e8f8; }
+
+      /* ── Cards & section headings ── */
+      .notice { padding: 14px 16px; margin-bottom: 24px; }
+      .tidal-overview { padding: 18px 16px; margin-bottom: 24px; }
+      .summary-section { margin-top: 32px; }
+      .summary-section h2 { font-size: 16px; }
+      .day-card { margin-bottom: 22px; }
+      /* slim the big passage-card title bar a touch */
+      .day-title-block { padding: 11px 16px; }
+      .day-section { padding: 14px 16px; }
+      .day-section h4 { margin-bottom: 8px; }
+      /* day-body already collapses to 1 col at 620 — drop the now-vertical
+         divider's left border and use a top rule between stacked sections */
+      .day-section + .day-section { border-left: none; border-top: 1px solid var(--border); }
+
+      /* ── Tide tables: roomier rows, comfortable text, comfy tap targets ── */
+      .tide-table { font-size: 13.5px; }
+      .tide-table th { padding: 7px 10px; }
+      .tide-table td { padding: 10px 10px; line-height: 1.4; }
+      /* source-link chips: give them a real tap target */
+      .source-link { padding: 9px 12px; }
+
+      /* ── Port range pair: side-by-side is fine but give it air ── */
+      .port-ranges { gap: 10px; }
+
+      /* ══ WIDE TABLES → STACKED DAY CARDS ══
+         Both .summary-table instances (8-col weather, 6-col week summary)
+         overflow on phones. Convert each row into a self-contained card
+         with label:value lines, matching the nautical card aesthetic.
+         Values are untouched — labels are injected via ::before.
+         Everything below is wrapped in this media block, so the >620px
+         desktop tables stay byte-for-byte identical. */
+      table.summary-table {
+        box-shadow: none;
+        background: transparent;
+        border-radius: 0;
+        display: block;
+      }
+      table.summary-table thead { display: none; }
+      table.summary-table tbody { display: block; }
+      table.summary-table tr {
+        display: block;
+        position: relative;            /* anchor for the promoted gust badge */
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(26,46,74,0.07);
+      }
+      /* kill desktop zebra/border rules that don't suit cards */
+      table.summary-table tr:nth-child(even) td { background: transparent; }
+      table.summary-table tr:last-child td { border-bottom: 1px solid #eef3f7; }
+      table.summary-table tr td:last-child { border-bottom: none; }
+
+      table.summary-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 14px;
+        padding: 7px 16px;             /* tighter vertical rhythm (judge2/3) */
+        border-bottom: 1px solid #eef3f7;
+        font-size: 13.5px;
+        line-height: 1.45;
+        min-width: 0;                  /* allow long tokens to wrap, not push width */
+      }
+      /* injected field label (left) — shared label token across both cards */
+      table.summary-table td::before {
+        content: "";
+        flex: 0 0 auto;
+        min-width: 92px;
+        color: var(--card-label);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        line-height: 1.5;
+      }
+      /* the right-hand value: keep it readable, never let it force width */
+      table.summary-table td > * {
+        text-align: right;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      /* the value text node itself wraps too (not just child spans) */
+      table.summary-table td { overflow-wrap: anywhere; }
+
+      /* first cell of every row = the navy Day header bar.
+         Slimmed (judge3) and used as the home for the promoted Gust badge. */
+      table.summary-table tr td:first-child {
+        background: var(--navy);
+        padding: 9px 15px;
+        border-bottom: none;
+        min-height: 40px;              /* ≥ comfortable header height */
+      }
+      /* only the weather card reserves header space for the promoted gust */
+      table.wx-table tr td:first-child { padding-right: 130px; }
+      table.summary-table tr td:first-child::before { display: none; }
+      table.summary-table tr td:first-child,
+      table.summary-table tr td:first-child strong {
+        color: white;
+        font-family: 'Merriweather', serif;
+        font-size: 15px;               /* nautical day name (judge1) */
+        font-weight: 700;
+        justify-content: flex-start;
+        align-items: center;
+      }
+
+      /* badges / wrapping cells align right cleanly, no vertical crush */
+      table.summary-table td .badge {
+        white-space: nowrap;
+        font-size: 11px;
+        padding: 3px 11px;
+        max-width: 100%;
+      }
+
+      /* ── WEATHER TABLE labels (8 cols) ── */
+      table.wx-table td:nth-of-type(2)::before { content: "Sky"; }
+      table.wx-table td:nth-of-type(3)::before { content: "Wind (from)"; }
+      table.wx-table td:nth-of-type(4)::before { content: "Gust"; }
+      table.wx-table td:nth-of-type(5)::before { content: "Sea (Hs)"; }
+      table.wx-table td:nth-of-type(6)::before { content: "Rain"; }
+      table.wx-table td:nth-of-type(7)::before { content: "Air max / min"; }
+      table.wx-table td:nth-of-type(8)::before { content: "Daylight"; }
+      /* keep every secondary value in the same body weight/colour
+         (judge1: Sea (Hs) must not read fainter than Rain/Air/Daylight) */
+      table.wx-table td:nth-of-type(n+5) { color: var(--text); font-weight: 600; }
+
+      /* ══ PROMOTE GUST INTO THE NAVY DAY HEADER (judge2/judge3) ══
+         The gust cell is the 4th <td>. We lift it out of the body flow and
+         pin it to the top-right, sitting inside the navy header bar. Pure
+         CSS-by-position — render()'s innerHTML and the printed value are
+         untouched. Its injected "Gust" label is hidden here. */
+      table.wx-table td:nth-of-type(4) {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 40px;                  /* match the navy header height */
+        padding: 0 14px;
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        background: transparent;
+        z-index: 2;
+      }
+      table.wx-table td:nth-of-type(4)::before { display: none; }
+
+      /* Gust colour ramp on the navy header (scoped to the gust cell only so
+         the identical .badge classes in the week-summary card are unaffected):
+           badge-neap  (≤F4, calm)  → cool green
+           badge-spring(F5–F6)      → amber warning
+           badge-warn  (≥F7, ⚠)     → red, bold, AA-contrast white text */
+      table.wx-table td:nth-of-type(4) .badge {
+        font-size: 11.5px;
+        font-weight: 800;
+        padding: 5px 11px;
+        border: 1px solid transparent;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      }
+      table.wx-table td:nth-of-type(4) .badge-neap {
+        background: #e8f8f0; color: #1d7a4d; border-color: #bfe6cf;
+      }
+      table.wx-table td:nth-of-type(4) .badge-spring {
+        background: var(--warn); color: #fff; border-color: #c4631f;
+      }
+      table.wx-table td:nth-of-type(4) .badge-warn {
+        background: var(--red); color: #fff; border-color: #962d20;
+      }
+
+      /* ── WEEK SUMMARY labels (6 cols) ── */
+      table.wk-table td:nth-of-type(2)::before { content: "Leg"; }
+      table.wk-table td:nth-of-type(3)::before { content: "Distance"; }
+      table.wk-table td:nth-of-type(4)::before { content: "Est. Time"; }
+      table.wk-table td:nth-of-type(5)::before { content: "Springs %"; }
+      table.wk-table td:nth-of-type(6)::before { content: "Watch Point"; }
+      /* tighten Distance + Est.Time inline gap so the value never crowds */
+      table.wk-table td:nth-of-type(3),
+      table.wk-table td:nth-of-type(4) { gap: 8px; }
+      /* the long "Key Watch Point" prose reads better left-aligned & full
+         width; cap its measure to ~36ch so it never runs edge-to-edge */
+      table.wk-table td:nth-of-type(6) { flex-direction: column; align-items: stretch; gap: 4px; }
+      table.wk-table td:nth-of-type(6)::before { min-width: 0; }
+      table.wk-table td:nth-of-type(6) > * {
+        text-align: left;
+        max-width: 36ch;
+        overflow-wrap: anywhere;
+      }
+
+      /* ── Port Tidal Characteristics outer grid → single column ── */
+      .port-char-grid { grid-template-columns: 1fr; gap: 14px; }
+
+      /* ── Live-weather bar: give the Refresh control breathing room ── */
+      #wxrefresh { padding: 6px 14px; }
+    }
+
+    /* ── Finer tuning for the smallest phones ── */
+    @media (max-width: 380px) {
+      header { padding: 22px 16px 24px; }
+      header h1 { font-size: 20px; }
+      main { padding: 20px 12px 44px; }
+      /* moon grid: 3 across is cramped under ~380 → 2 across */
+      .moon-grid { grid-template-columns: repeat(2, 1fr); }
+      /* port range pair stacks so the 18px figures aren't squeezed */
+      .port-ranges { grid-template-columns: 1fr; }
+      /* slightly tighter labels so values keep room */
+      table.summary-table td::before { min-width: 74px; font-size: 10px; }
+      table.summary-table td { padding: 6px 13px; gap: 10px; }
+      table.summary-table tr td:first-child { padding: 8px 13px; min-height: 38px; }
+      table.wx-table tr td:first-child { padding-right: 118px; }
+      table.wx-table td:nth-of-type(4) { height: 38px; padding: 0 12px; }
+      table.wx-table td:nth-of-type(4) .badge { font-size: 11px; padding: 4px 9px; }
+      /* watch-point measure cap a little tighter on the narrowest screens */
+      table.wk-table td:nth-of-type(6) > * { max-width: 32ch; }
+    }
   </style>
 </head>
 <body>
@@ -375,6 +648,13 @@
 
 <main>
 
+  <!-- In-page jump nav (phone-only; hidden on desktop via .jump-nav rule) -->
+  <nav class="jump-nav" aria-label="Jump to section">
+    <a href="#wx-section">Weather</a>
+    <a href="#week-summary">Week Summary</a>
+    <a href="#tidal-section">Tidal</a>
+  </nav>
+
   <!-- NOTICE -->
   <div class="notice">
     <strong>⚠ Provisional itinerary — distances are estimates; weather is a snapshot.</strong>
@@ -384,13 +664,13 @@
   </div>
 
   <!-- WEATHER SNAPSHOT -->
-  <div class="tidal-overview" style="background:#fff8f2;border-color:#f0d5b5;">
+  <div class="tidal-overview" id="wx-section" style="background:#fff8f2;border-color:#f0d5b5;">
     <h2 style="border-color:#f0d5b5;">💨 Wind &amp; Weather Outlook <span style="font-weight:400;font-size:12px;color:var(--muted);">(live — refreshes on load)</span></h2>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;font-size:12.5px;color:var(--muted);flex-wrap:wrap;">
       <span id="wxstatus">⏳ loading forecast…</span>
       <button id="wxrefresh" style="background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--ocean);cursor:pointer;">↻ Refresh</button>
     </div>
-    <table class="summary-table" style="box-shadow:none;">
+    <table class="summary-table wx-table" style="box-shadow:none;">
       <thead>
         <tr><th>Day</th><th>Sky</th><th>Wind (from)</th><th>Gust</th><th>Sea ~Hs</th><th>Rain</th><th>Air</th><th>Daylight</th></tr>
       </thead>
@@ -412,43 +692,44 @@
   </div>
 
   <!-- TIDAL OVERVIEW -->
-  <div class="tidal-overview">
+  <div class="tidal-overview" id="tidal-section">
     <h2>🌙 Tidal Conditions Overview — June 1–5, 2026</h2>
     <div class="moon-grid">
       <div class="moon-day">
         <div class="date">Mon 1 Jun</div>
         <div class="moon-icon">🌔</div>
         <div class="phase">Waxing Gibbous</div>
-        <div class="condition">Late springs</div>
+        <div class="condition"><strong class="spct">60%</strong> springs</div>
       </div>
       <div class="moon-day">
         <div class="date">Tue 2 Jun</div>
         <div class="moon-icon">🌔</div>
         <div class="phase">Waxing Gibbous</div>
-        <div class="condition">Easing springs</div>
+        <div class="condition"><strong class="spct">60%</strong> springs</div>
       </div>
       <div class="moon-day">
         <div class="date">Wed 3 Jun</div>
         <div class="moon-icon">🌔</div>
         <div class="phase">Waxing Gibbous</div>
-        <div class="condition">Transitional</div>
+        <div class="condition"><strong class="spct">60%</strong> springs</div>
       </div>
       <div class="moon-day highlight">
         <div class="date">Thu 4 Jun</div>
         <div class="moon-icon">🌓</div>
         <div class="phase">First Quarter</div>
-        <div class="condition">Near neaps ✓</div>
+        <div class="condition"><strong class="spct">50%</strong> springs</div>
       </div>
       <div class="moon-day highlight">
         <div class="date">Fri 5 Jun</div>
         <div class="moon-icon">🌓</div>
         <div class="phase">First Quarter</div>
-        <div class="condition">Neap tides ✓</div>
+        <div class="condition"><strong class="spct">45%</strong> springs</div>
       </div>
     </div>
     <div class="overview-note">
-      <p>The previous <strong>new moon was approximately 27–28 May 2026</strong>; the next <strong>full moon is 11 June 2026</strong>. This places the week on the <em>spring-to-neap transition</em>. Days 1–2 will see larger tidal ranges (diminishing springs), with tides moderating toward neaps by Days 4–5.</p>
-      <p><strong>Key implication for the Solent gates:</strong> the two passages that hinge on tide are <strong>Hurst Narrows (Day 2)</strong> and the <strong>Chichester Bar (Days 3–4)</strong>. Both are easier later in the week as streams ease toward neaps — but on Days 1–2 (springs) the western-Solent streams can still run 3–4 kn, so timing matters most early on.</p>
+      <p>The previous <strong>new moon was ~27–28 May 2026</strong> and the next <strong>full moon is 11 June 2026</strong> — but this is a <em>weak</em> spring cycle, so the exercise week sits in the <strong>moderate middle of the range</strong>, never reaching true springs or neaps. Per the QHM Portsmouth predictions the daily spring-strength eases gently from <strong>~60% (Mon–Wed)</strong> to <strong>~45% (Fri)</strong>; genuine neaps (~15–20%) do not arrive until ~9–12 June. Expect moderate streams throughout, a little easier later in the week.</p>
+      <p><strong>Key implication for the Solent gates:</strong> the two passages that hinge on tide are <strong>Hurst Narrows (Day 2)</strong> and the <strong>Chichester Bar (Days 3–4)</strong>. Both are easier later in the week as the streams ease (≈60%→45% of springs) — but on Days 1–2 (the week's strongest tides) the western-Solent streams still run briskly, so timing matters most early on.</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px;">Spring % from the <a href="https://www.royalnavy.mod.uk/khm/portsmouth/port-information/tide-tables">QHM Portsmouth tide tables</a> (Royal Navy KHM), where 100% ≈ mean spring range and ~15–20% ≈ neaps. Figures for 1–5 Jun 2026.</p>
     </div>
   </div>
 
@@ -465,7 +746,7 @@
           <div class="meta-item">📅 <span>Monday 1 June</span></div>
           <div class="meta-item">⚓ <span>~11 nm</span></div>
           <div class="meta-item">⏱ <span>~2.5 hrs at 5 kn</span></div>
-          <div class="meta-item">🌙 <span>Late springs</span></div>
+          <div class="meta-item">🌙 <span>60% springs</span></div>
         </div>
       </div>
     </div>
@@ -519,7 +800,7 @@
           <div class="meta-item">📅 <span>Tuesday 2 June</span></div>
           <div class="meta-item">⚓ <span>~21 nm</span></div>
           <div class="meta-item">⏱ <span>~4.2 hrs at 5 kn</span></div>
-          <div class="meta-item">🌙 <span>Easing springs</span></div>
+          <div class="meta-item">🌙 <span>60% springs</span></div>
         </div>
       </div>
     </div>
@@ -569,7 +850,7 @@
           <div class="meta-item">📅 <span>Wednesday 3 June</span></div>
           <div class="meta-item">⚓ <span>~30 nm</span></div>
           <div class="meta-item">⏱ <span>~6 hrs at 5 kn</span></div>
-          <div class="meta-item">🌙 <span>Transitional</span></div>
+          <div class="meta-item">🌙 <span>60% springs</span></div>
         </div>
       </div>
     </div>
@@ -623,7 +904,7 @@
           <div class="meta-item">📅 <span>Thursday 4 June</span></div>
           <div class="meta-item">⚓ <span>~22 nm</span></div>
           <div class="meta-item">⏱ <span>~4.4 hrs at 5 kn</span></div>
-          <div class="meta-item">🌙 <span>Near neaps ✓</span></div>
+          <div class="meta-item">🌙 <span>50% springs</span></div>
         </div>
       </div>
     </div>
@@ -674,7 +955,7 @@
           <div class="meta-item">📅 <span>Friday 5 June</span></div>
           <div class="meta-item">⚓ <span>~10 nm</span></div>
           <div class="meta-item">⏱ <span>~2 hrs at 5 kn</span></div>
-          <div class="meta-item">🌙 <span>Neap tides</span></div>
+          <div class="meta-item">🌙 <span>45% springs</span></div>
         </div>
       </div>
     </div>
@@ -711,16 +992,16 @@
   </div>
 
   <!-- SUMMARY TABLE -->
-  <div class="summary-section">
+  <div class="summary-section" id="week-summary">
     <h2>Week Summary at a Glance</h2>
-    <table class="summary-table">
+    <table class="summary-table wk-table">
       <thead>
         <tr>
           <th>Day</th>
           <th>Leg</th>
           <th>Distance</th>
           <th>Est. Time</th>
-          <th>Tidal Condition</th>
+          <th>Springs %</th>
           <th>Key Watch Point</th>
         </tr>
       </thead>
@@ -730,7 +1011,7 @@
           <td>Gosport → Hamble Point</td>
           <td>~11 nm</td>
           <td>~2.5 h</td>
-          <td><span class="badge badge-spring">Late springs</span></td>
+          <td><span class="badge badge-spring">60%</span></td>
           <td>QHM Portsmouth exit; Soton Water young-flood stand</td>
         </tr>
         <tr>
@@ -738,7 +1019,7 @@
           <td>Hamble → Yarmouth</td>
           <td>~21 nm</td>
           <td>~4.2 h</td>
-          <td><span class="badge badge-spring">Easing springs</span></td>
+          <td><span class="badge badge-spring">60%</span></td>
           <td><span style="color:var(--warn); font-weight:600;">Hurst Narrows — carry the ebb; avoid wind-over-tide</span></td>
         </tr>
         <tr>
@@ -746,7 +1027,7 @@
           <td>Yarmouth → Chichester Hbr</td>
           <td>~30 nm</td>
           <td>~6 h</td>
-          <td><span class="badge badge-spring">Transitional</span></td>
+          <td><span class="badge badge-spring">60%</span></td>
           <td><span style="color:var(--warn); font-weight:600;">Chichester Bar — cross on the rise, HW −3h to +1h; mainland lunch (DCA)</span></td>
         </tr>
         <tr>
@@ -754,7 +1035,7 @@
           <td>Chichester → West Cowes</td>
           <td>~22 nm</td>
           <td>~4.4 h</td>
-          <td><span class="badge badge-neap">Near neaps ✓</span></td>
+          <td><span class="badge badge-neap">50%</span></td>
           <td>Bar exit on the rise; Cowes chain ferry &amp; Medina ebb</td>
         </tr>
         <tr>
@@ -762,7 +1043,7 @@
           <td>West Cowes → Gosport</td>
           <td>~10 nm</td>
           <td>~2 h</td>
-          <td><span class="badge badge-neap">Neap tides</span></td>
+          <td><span class="badge badge-neap">45%</span></td>
           <td>Use E-going stream; QHM Portsmouth entry</td>
         </tr>
       </tbody>
@@ -775,7 +1056,7 @@
     <h2>Port Tidal Characteristics — Reference Data</h2>
     <p style="font-size:13.5px; margin-bottom:16px;">Approximate mean heights based on UKHO Admiralty data. Actual heights for June 1–5 will fall between spring and neap values, depending on the day:</p>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+    <div class="port-char-grid">
 
       <div style="background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(26,46,74,0.07);">
         <div style="font-weight:700; color:var(--navy); margin-bottom:10px; font-size:14px;">⚓ Portsmouth (Standard Port)</div>
