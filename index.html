@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solent Passage & Tidal Planner – June 2026</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+
+    :root {
+      --navy: #1a2e4a;
+      --ocean: #1f5f8b;
+      --sky: #3a9bd5;
+      --teal: #00a896;
+      --sand: #f5f0e8;
+      --light: #eaf4fb;
+      --warn: #e07b39;
+      --red: #c0392b;
+      --green: #27ae60;
+      --text: #2c3e50;
+      --muted: #7f8c8d;
+      --border: #d0e4f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Sans Pro', sans-serif;
+      background: #f0f6fb;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--ocean) 100%);
+      color: white;
+      padding: 40px 48px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0; right: 0;
+      height: 40px;
+      background: #f0f6fb;
+      clip-path: ellipse(55% 100% at 50% 100%);
+    }
+    header .trip-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--sky);
+      margin-bottom: 6px;
+    }
+    header h1 {
+      font-family: 'Merriweather', serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    header .subtitle {
+      font-size: 15px;
+      color: rgba(255,255,255,0.75);
+    }
+    header .meta-chips {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    header .chip {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 13px;
+      color: white;
+    }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── NOTICE BOX ── */
+    .notice {
+      background: #fff8f2;
+      border-left: 4px solid var(--warn);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      font-size: 14px;
+    }
+    .notice strong { color: var(--warn); }
+    .notice p + p { margin-top: 6px; }
+    .notice a { color: var(--ocean); }
+
+    /* ── TIDAL OVERVIEW ── */
+    .tidal-overview {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 26px;
+      margin-bottom: 32px;
+    }
+    .tidal-overview h2 {
+      font-family: 'Merriweather', serif;
+      font-size: 16px;
+      color: var(--navy);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .moon-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .moon-day {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .moon-day .date { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .moon-day .moon-icon { font-size: 22px; margin-bottom: 4px; }
+    .moon-day .phase { font-size: 11px; font-weight: 600; color: var(--navy); }
+    .moon-day .condition { font-size: 11px; color: var(--ocean); margin-top: 3px; }
+    .moon-day.highlight { border-color: var(--warn); background: #fff8f2; }
+    .moon-day.highlight .phase { color: var(--warn); }
+    .overview-note { font-size: 13.5px; color: var(--text); }
+    .overview-note p + p { margin-top: 6px; }
+
+    /* ── DAY CARDS ── */
+    .day-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(26,46,74,0.08);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .day-header {
+      display: flex;
+      align-items: stretch;
+    }
+    .day-number {
+      background: var(--navy);
+      color: white;
+      width: 64px;
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .day-number .day-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+    .day-number .day-num { font-size: 26px; font-weight: 700; line-height: 1; }
+    .day-title-block {
+      padding: 14px 20px;
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .day-title-block h3 {
+      font-family: 'Merriweather', serif;
+      font-size: 15px;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .day-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .meta-item { font-size: 12.5px; color: var(--muted); }
+    .meta-item span { color: var(--text); font-weight: 600; }
+
+    .day-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 620px) {
+      .day-body { grid-template-columns: 1fr; }
+      .moon-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .day-section {
+      padding: 18px 22px;
+    }
+    .day-section + .day-section {
+      border-left: 1px solid var(--border);
+    }
+    .day-section h4 {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ocean);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    /* ── TIDE TABLE ── */
+    .tide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .tide-table th {
+      background: var(--light);
+      color: var(--ocean);
+      font-size: 10.5px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .tide-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .tide-table tr:last-child td { border-bottom: none; }
+    .hw { color: var(--ocean); font-weight: 600; }
+    .lw { color: var(--muted); }
+    .tbc { color: #aaa; font-style: italic; font-size: 12px; }
+
+    .port-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+    .port-label:first-child { margin-top: 0; }
+
+    /* ── ALERT / TIDAL GATES ── */
+    .alert-box {
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .alert-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .alert-box p + p { margin-top: 4px; }
+    .alert-warn { background: #fff8f2; border: 1px solid #f0d5b5; }
+    .alert-warn .icon { color: var(--warn); }
+    .alert-info { background: var(--light); border: 1px solid var(--border); }
+    .alert-info .icon { color: var(--sky); }
+    .alert-good { background: #f0faf4; border: 1px solid #b8e6c8; }
+    .alert-good .icon { color: var(--green); }
+
+    /* ── PORT INFO ── */
+    .port-ranges {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .range-card {
+      background: var(--light);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .range-card .range-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .range-card .range-hw { font-size: 18px; font-weight: 700; color: var(--ocean); }
+    .range-card .range-lw { font-size: 13px; color: var(--muted); }
+    .range-card .range-type { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* ── SOURCE LINK ── */
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--ocean);
+      text-decoration: none;
+      background: var(--light);
+      padding: 5px 10px;
+      border-radius: 6px;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      word-break: break-all;
+    }
+    .source-link:hover { background: #d0e8f8; }
+
+    /* ── SUMMARY TABLE ── */
+    .summary-section { margin-top: 40px; }
+    .summary-section h2 {
+      font-family: 'Merriweather', serif;
+      font-size: 17px;
+      color: var(--navy);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(26,46,74,0.07);
+    }
+    .summary-table th {
+      background: var(--navy);
+      color: white;
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11.5px;
+      letter-spacing: 0.5px;
+    }
+    .summary-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .summary-table tr:last-child td { border-bottom: none; }
+    .summary-table tr:nth-child(even) td { background: #fafcfe; }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-spring { background: #d6edf8; color: var(--ocean); }
+    .badge-neap { background: #e8f8f0; color: var(--green); }
+    .badge-warn { background: #fde8d8; color: var(--warn); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 20px 24px 40px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    footer a { color: var(--ocean); }
+
+    /* ── DIVIDER ── */
+    .section-divider {
+      border: none;
+      border-top: 2px solid var(--border);
+      margin: 14px 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="trip-label">Ex Southern Waveform · Solent Tidal Planner</div>
+  <h1>Solent Exercise Week</h1>
+  <div class="subtitle">Gosport · Hamble · Yarmouth · Chichester · Cowes · Gosport</div>
+  <div class="meta-chips">
+    <div class="chip">📅 1–5 June 2026</div>
+    <div class="chip">⛵ Sea Nymph III &amp; Ocean Wave</div>
+    <div class="chip">🧭 ~95 nm total</div>
+    <div class="chip">🌊 Solent only (Day Skipper limits)</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- NOTICE -->
+  <div class="notice">
+    <strong>⚠ Provisional itinerary — distances are estimates; weather is a snapshot.</strong>
+    <p>This plan reflects the <em>provisional</em> berthing itinerary (Tue/Wed still TBC). Leg distances and passage times are <strong>approximate</strong> pilotage estimates at ~5 kn; confirm against the chart.</p>
+    <p><strong>Tide times below are real</strong> — Portsmouth (Standard Port) predictions for 1–5 Jun 2026, BST, cross-referenced between tidetime.org and tide-forecast.com (agreed to the minute). Central-Solent ports (Cowes, Yarmouth, Lymington) sit ~10–20 min off Portsmouth and show the "young-flood stand" / double HW — use Admiralty EasyTide for those exact times.</p>
+    <p><strong>Weather &amp; wind is a snapshot taken 28 May 2026</strong> and <em>will change</em> — always check the <a href="file:///Users/matt/Library/Mobile%20Documents/com~apple~CloudDocs/Claude%20Access%20Folder/Projects/Ex%20Southern%20Waveform%20Claude/solent-dashboard.html">live Solent dashboard</a> (ECMWF · GFS · UKMO · ICON, refreshed on load) before relying on any figure.</p>
+  </div>
+
+  <!-- WEATHER SNAPSHOT -->
+  <div class="tidal-overview" style="background:#fff8f2;border-color:#f0d5b5;">
+    <h2 style="border-color:#f0d5b5;">💨 Wind &amp; Weather Outlook <span style="font-weight:400;font-size:12px;color:var(--muted);">(live — refreshes on load)</span></h2>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;font-size:12.5px;color:var(--muted);flex-wrap:wrap;">
+      <span id="wxstatus">⏳ loading forecast…</span>
+      <button id="wxrefresh" style="background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--ocean);cursor:pointer;">↻ Refresh</button>
+    </div>
+    <table class="summary-table" style="box-shadow:none;">
+      <thead>
+        <tr><th>Day</th><th>Sky</th><th>Wind (from)</th><th>Gust</th><th>Sea ~Hs</th><th>Rain</th><th>Air</th><th>Daylight</th></tr>
+      </thead>
+      <tbody id="wxbody">
+        <tr><td><strong>Mon 1</strong></td><td>🌦️ Light drizzle</td><td>13 kn SW</td><td><span class="badge badge-spring">25 kn · F6</span></td><td>0.8 m</td><td>2.3 mm · 62%</td><td>17° / 14°</td><td>04:57–21:08</td></tr>
+        <tr><td><strong>Tue 2</strong></td><td>🌦️ Light drizzle</td><td>14 kn WSW</td><td><span class="badge badge-spring">27 kn · F6</span></td><td>0.9 m</td><td>0.9 mm · 63%</td><td>18° / 14°</td><td>04:56–21:09</td></tr>
+        <tr><td><strong>Wed 3</strong></td><td>🌧️ Light rain</td><td><strong>22 kn SW</strong></td><td><span class="badge badge-warn">43 kn · F9 ⚠</span></td><td>1.1 m</td><td>13.6 mm · 72%</td><td>17° / 14°</td><td>04:55–21:10</td></tr>
+        <tr><td><strong>Thu 4</strong></td><td>🌦️ Drizzle</td><td>18 kn W</td><td><span class="badge badge-warn">38 kn · F8 ⚠</span></td><td>1.0 m</td><td>6.6 mm · 73%</td><td>17° / 13°</td><td>04:55–21:11</td></tr>
+        <tr><td><strong>Fri 5</strong></td><td>🌦️ Light drizzle</td><td>10 kn NNW</td><td><span class="badge badge-neap">21 kn · F5</span></td><td>0.4 m</td><td>1.4 mm · 52%</td><td>18° / 12°</td><td>04:54–21:12</td></tr>
+      </tbody>
+    </table>
+    <div class="alert-warn" id="wxwarn" style="margin-top:14px;">
+      <div class="icon">⚠️</div>
+      <div>
+        <p><strong>Wed 3 &amp; Thu 4 are the rough days in this snapshot</strong> — gusts to F9 (43 kn) Wed and F8 (38 kn) Thu, with the most rain Wed. That coincides exactly with the longest, most committing leg (Yarmouth → Chichester, 30 nm) and the Chichester Bar gate. <strong>Reef early, and treat the Wed plan as the one most likely to need re-routing or a weather day.</strong> Fri eases to F3–F5 for the run home.</p>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;">Source: Open-Meteo multi-model (ECMWF, NOAA GFS, UK Met Office, DWD ICON) + Open-Meteo marine, central Solent ~50.77°N 1.30°W. Model cross-reference &amp; live refresh in the <a href="file:///Users/matt/Library/Mobile%20Documents/com~apple~CloudDocs/Claude%20Access%20Folder/Projects/Ex%20Southern%20Waveform%20Claude/solent-dashboard.html">Solent dashboard</a>.</p>
+  </div>
+
+  <!-- TIDAL OVERVIEW -->
+  <div class="tidal-overview">
+    <h2>🌙 Tidal Conditions Overview — June 1–5, 2026</h2>
+    <div class="moon-grid">
+      <div class="moon-day">
+        <div class="date">Mon 1 Jun</div>
+        <div class="moon-icon">🌔</div>
+        <div class="phase">Waxing Gibbous</div>
+        <div class="condition">Late springs</div>
+      </div>
+      <div class="moon-day">
+        <div class="date">Tue 2 Jun</div>
+        <div class="moon-icon">🌔</div>
+        <div class="phase">Waxing Gibbous</div>
+        <div class="condition">Easing springs</div>
+      </div>
+      <div class="moon-day">
+        <div class="date">Wed 3 Jun</div>
+        <div class="moon-icon">🌔</div>
+        <div class="phase">Waxing Gibbous</div>
+        <div class="condition">Transitional</div>
+      </div>
+      <div class="moon-day highlight">
+        <div class="date">Thu 4 Jun</div>
+        <div class="moon-icon">🌓</div>
+        <div class="phase">First Quarter</div>
+        <div class="condition">Near neaps ✓</div>
+      </div>
+      <div class="moon-day highlight">
+        <div class="date">Fri 5 Jun</div>
+        <div class="moon-icon">🌓</div>
+        <div class="phase">First Quarter</div>
+        <div class="condition">Neap tides ✓</div>
+      </div>
+    </div>
+    <div class="overview-note">
+      <p>The previous <strong>new moon was approximately 27–28 May 2026</strong>; the next <strong>full moon is 11 June 2026</strong>. This places the week on the <em>spring-to-neap transition</em>. Days 1–2 will see larger tidal ranges (diminishing springs), with tides moderating toward neaps by Days 4–5.</p>
+      <p><strong>Key implication for the Solent gates:</strong> the two passages that hinge on tide are <strong>Hurst Narrows (Day 2)</strong> and the <strong>Chichester Bar (Days 3–4)</strong>. Both are easier later in the week as streams ease toward neaps — but on Days 1–2 (springs) the western-Solent streams can still run 3–4 kn, so timing matters most early on.</p>
+    </div>
+  </div>
+
+  <!-- ──────────────────── DAY 1 ──────────────────── -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-number">
+        <span class="day-label">Day</span>
+        <span class="day-num">1</span>
+      </div>
+      <div class="day-title-block">
+        <h3>Gosport → Hamble Point</h3>
+        <div class="day-meta">
+          <div class="meta-item">📅 <span>Monday 1 June</span></div>
+          <div class="meta-item">⚓ <span>~11 nm</span></div>
+          <div class="meta-item">⏱ <span>~2.5 hrs at 5 kn</span></div>
+          <div class="meta-item">🌙 <span>Late springs</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="day-section">
+        <h4>Portsmouth Tide — Mon 1 Jun (BST)</h4>
+        <table class="tide-table">
+          <thead>
+            <tr><th>Event</th><th>Time</th><th>Height</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="hw">HW</td><td class="tm">00:34</td><td>4.32 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">06:00</td><td>1.08 m</td></tr>
+            <tr><td class="hw">HW</td><td class="tm">13:03</td><td>4.25 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">18:16</td><td>1.31 m</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">Hamble / Southampton Water ≈ HW Portsmouth + prolonged young-flood stand — generous arrival window. Confirm on EasyTide.</p>
+      </div>
+      <div class="day-section">
+        <h4>Tidal Planning Notes</h4>
+        <div class="alert-info">
+          <div class="icon">ℹ️</div>
+          <div>
+            <p><strong>Short shakedown hop.</strong> Leaving Portsmouth Harbour, observe QHM procedures and the small-boat channel — keep clear of commercial and naval traffic in the harbour entrance and the Solent precautionary area.</p>
+            <p>Cross NW to the mouth of Southampton Water and up to the Hamble. A short leg, so tide timing is non-critical, but a fair west-going stream in the early afternoon will help.</p>
+          </div>
+        </div>
+        <div class="alert-good" style="margin-top:10px;">
+          <div class="icon">✅</div>
+          <div><p><strong>Hamble entry:</strong> well-marked and accessible at most states; the river runs a brisk stream, so approach the marina pontoons with that in mind. <strong>MDL Hamble Point — booked ×2 (£60/boat).</strong></p></div>
+        </div>
+        <div class="alert-info" style="margin-top:10px;">
+          <div class="icon">ℹ️</div>
+          <div><p><strong>Southampton Water:</strong> benefits from the famous <em>young flood stand</em> / prolonged HW — a generous arrival window.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────── DAY 2 ──────────────────── -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-number">
+        <span class="day-label">Day</span>
+        <span class="day-num">2</span>
+      </div>
+      <div class="day-title-block">
+        <h3>Hamble → Yarmouth (IoW) &nbsp;<span style="font-size:12px; color:var(--warn); font-family:'Source Sans Pro',sans-serif; font-weight:600;">⚠ HURST NARROWS</span></h3>
+        <div class="day-meta">
+          <div class="meta-item">📅 <span>Tuesday 2 June</span></div>
+          <div class="meta-item">⚓ <span>~21 nm</span></div>
+          <div class="meta-item">⏱ <span>~4.2 hrs at 5 kn</span></div>
+          <div class="meta-item">🌙 <span>Easing springs</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="day-section">
+        <h4>Portsmouth Tide — Tue 2 Jun (BST)</h4>
+        <table class="tide-table">
+          <thead>
+            <tr><th>Event</th><th>Time</th><th>Height</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="hw">HW</td><td class="tm">01:09</td><td>4.29 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">06:35</td><td>1.13 m</td></tr>
+            <tr><td class="hw">HW</td><td class="tm">13:41</td><td>4.25 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">18:49</td><td>1.41 m</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">Hurst &amp; Yarmouth (W Solent) run ~5–10 min ahead of Portsmouth. Plan to carry the ebb (W-going) down to Hurst — broadly after the morning HW. Confirm on EasyTide.</p>
+      </div>
+      <div class="day-section">
+        <h4>Tidal Planning Notes</h4>
+        <div class="alert-warn">
+          <div class="icon">⚠️</div>
+          <div>
+            <p><strong>Hurst Narrows:</strong> the western Solent constricts between Hurst Point and the Island. Streams here run hard — up to ~4 kn at springs. Carry the <em>west-going (ebb) stream</em> down the Solent; avoid arriving against a strong wind-over-tide, which kicks up a short, steep sea off Hurst.</p>
+            <p style="margin-top:6px;">Plan to pass Hurst with a fair tide — broadly on the ebb (after local HW). With easing springs this will still add 2–3 kn to your speed over ground.</p>
+          </div>
+        </div>
+        <div class="alert-good" style="margin-top:10px;">
+          <div class="icon">✅</div>
+          <div><p><strong>Yarmouth entry:</strong> straightforward and accessible on any tide; well-marked approach. A comfortable 21 nm day.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────── DAY 3 ──────────────────── -->
+  <div class="day-card" style="border: 2px solid var(--warn);">
+    <div class="day-header">
+      <div class="day-number" style="background: var(--warn);">
+        <span class="day-label">Day</span>
+        <span class="day-num">3</span>
+      </div>
+      <div class="day-title-block">
+        <h3>Yarmouth → Chichester Harbour &nbsp;<span style="font-size:12px; color:var(--warn); font-family:'Source Sans Pro',sans-serif; font-weight:600;">⚠ KEY PLANNING DAY</span></h3>
+        <div class="day-meta">
+          <div class="meta-item">📅 <span>Wednesday 3 June</span></div>
+          <div class="meta-item">⚓ <span>~30 nm</span></div>
+          <div class="meta-item">⏱ <span>~6 hrs at 5 kn</span></div>
+          <div class="meta-item">🌙 <span>Transitional</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="day-section">
+        <h4>Portsmouth Tide — Wed 3 Jun (BST)</h4>
+        <table class="tide-table">
+          <thead>
+            <tr><th>Event</th><th>Time</th><th>Height</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="hw">HW</td><td class="tm">01:43</td><td>4.24 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">07:06</td><td>1.20 m</td></tr>
+            <tr><td class="hw">HW</td><td class="tm">14:18</td><td>4.22 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">19:20</td><td>1.51 m</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;"><strong>Chichester Bar gate:</strong> HW Chichester ≈ HW Portsmouth +10 min. Afternoon HW ~14:18 → cross the bar on the rise roughly <strong>11:00–15:30</strong>; avoid the morning LW (~07:06). Confirm on EasyTide. Mainland lunch / DCA drop near Portsmouth en route.</p>
+      </div>
+      <div class="day-section">
+        <h4>Chichester Bar — Tidal Gate ⚠</h4>
+        <div class="alert-warn">
+          <div class="icon">⚠️</div>
+          <div>
+            <p><strong>Chichester Bar</strong> is the critical gate of the week. The bar is shallow (charted ~0.7m, less at points) and dangerous in strong onshore winds against the ebb. <strong>Do not cross near LW</strong>, especially at springs.</p>
+            <p style="margin-top:6px;">Aim to cross the bar on a <em>rising tide</em>, ideally within roughly <strong>HW Chichester −3h to +1h</strong>, in fair conditions. The Bar Beacon marks the approach — follow the recommended track and the harbour entrance buoyage.</p>
+          </div>
+        </div>
+        <div class="alert-info" style="margin-top:10px;">
+          <div class="icon">ℹ️</div>
+          <div><p><strong>This is the long leg (~30 nm) and routing is east the full length of the Solent</strong> — carry the east-going flood. A mid-morning departure from Yarmouth lets you ride the flood east and arrive at Chichester on the rise. Build in the mainland lunch stop (DCA drop-off) around Portsmouth/Gosport en route.</p></div>
+        </div>
+        <div class="alert-info" style="margin-top:10px;">
+          <div class="icon">ℹ️</div>
+          <div><p>Strong streams run in the harbour entrance (up to ~5 kn springs in the narrows by the Winner). Plan the bar timing first, then back-calculate the Yarmouth departure.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────── DAY 4 ──────────────────── -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-number">
+        <span class="day-label">Day</span>
+        <span class="day-num">4</span>
+      </div>
+      <div class="day-title-block">
+        <h3>Chichester → West Cowes</h3>
+        <div class="day-meta">
+          <div class="meta-item">📅 <span>Thursday 4 June</span></div>
+          <div class="meta-item">⚓ <span>~22 nm</span></div>
+          <div class="meta-item">⏱ <span>~4.4 hrs at 5 kn</span></div>
+          <div class="meta-item">🌙 <span>Near neaps ✓</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="day-section">
+        <h4>Portsmouth Tide — Thu 4 Jun (BST)</h4>
+        <table class="tide-table">
+          <thead>
+            <tr><th>Event</th><th>Time</th><th>Height</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="hw">HW</td><td class="tm">02:15</td><td>4.18 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">07:36</td><td>1.26 m</td></tr>
+            <tr><td class="hw">HW</td><td class="tm">14:54</td><td>4.18 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">19:50</td><td>1.59 m</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">Cowes ≈ HW Portsmouth −10 to −15 min. Cross the Chichester Bar outbound with adequate height (on the rise toward the ~14:54 HW); avoid the morning LW (~07:36). Confirm on EasyTide.</p>
+      </div>
+      <div class="day-section">
+        <h4>Tidal Planning Notes</h4>
+        <div class="alert-warn">
+          <div class="icon">⚠️</div>
+          <div><p><strong>Chichester Bar (exit):</strong> same gate as Day 3 — leave with sufficient height of tide over the bar, ideally on the rise or near HW; avoid the ebb against fresh onshore wind.</p></div>
+        </div>
+        <div class="alert-info" style="margin-top:10px;">
+          <div class="icon">ℹ️</div>
+          <div><p>Once clear of the bar, take the west-going stream back along the Solent to Cowes. Near-neap streams make this an easier passage than earlier in the week.</p></div>
+        </div>
+        <div class="alert-warn" style="margin-top:10px;">
+          <div class="icon">⚠️</div>
+          <div><p><strong>Cowes / River Medina:</strong> busy entrance — watch for the <strong>chain ferry (floating bridge)</strong> across the river and strong ebb out of the Medina. Follow the small-craft channel. <strong>West Cowes Yacht Haven — booked ×2 (Ch 80, £50/boat + £5 electric).</strong></p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────── DAY 5 ──────────────────── -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-number">
+        <span class="day-label">Day</span>
+        <span class="day-num">5</span>
+      </div>
+      <div class="day-title-block">
+        <h3>West Cowes → Gosport</h3>
+        <div class="day-meta">
+          <div class="meta-item">📅 <span>Friday 5 June</span></div>
+          <div class="meta-item">⚓ <span>~10 nm</span></div>
+          <div class="meta-item">⏱ <span>~2 hrs at 5 kn</span></div>
+          <div class="meta-item">🌙 <span>Neap tides</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="day-section">
+        <h4>Portsmouth Tide — Fri 5 Jun (BST)</h4>
+        <table class="tide-table">
+          <thead>
+            <tr><th>Event</th><th>Time</th><th>Height</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="hw">HW</td><td class="tm">02:49</td><td>4.11 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">08:08</td><td>1.32 m</td></tr>
+            <tr><td class="hw">HW</td><td class="tm">15:32</td><td>4.13 m</td></tr>
+            <tr><td class="lw">LW</td><td class="tm">20:26</td><td>1.65 m</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">Cowes ≈ HW Portsmouth −10 to −15 min. Short final hop east into Portsmouth Harbour — take the E-going stream. Confirm on EasyTide.</p>
+      </div>
+      <div class="day-section">
+        <h4>Tidal Planning Notes</h4>
+        <div class="alert-info">
+          <div class="icon">ℹ️</div>
+          <div>
+            <p><strong>Short final hop east.</strong> Take the east-going stream across to Portsmouth Harbour. Time the short leg so you arrive against QHM procedures and the small-boat channel — keep clear of commercial movements and the harbour entrance.</p>
+          </div>
+        </div>
+        <div class="alert-good" style="margin-top:10px;">
+          <div class="icon">✅</div>
+          <div><p>Neap tides mean gentle streams throughout — a relaxed ~10 nm return to wrap up the week and hand the boats back at JSASTC.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="summary-section">
+    <h2>Week Summary at a Glance</h2>
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Leg</th>
+          <th>Distance</th>
+          <th>Est. Time</th>
+          <th>Tidal Condition</th>
+          <th>Key Watch Point</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1 · Mon</strong></td>
+          <td>Gosport → Hamble Point</td>
+          <td>~11 nm</td>
+          <td>~2.5 h</td>
+          <td><span class="badge badge-spring">Late springs</span></td>
+          <td>QHM Portsmouth exit; Soton Water young-flood stand</td>
+        </tr>
+        <tr>
+          <td><strong>2 · Tue</strong></td>
+          <td>Hamble → Yarmouth</td>
+          <td>~21 nm</td>
+          <td>~4.2 h</td>
+          <td><span class="badge badge-spring">Easing springs</span></td>
+          <td><span style="color:var(--warn); font-weight:600;">Hurst Narrows — carry the ebb; avoid wind-over-tide</span></td>
+        </tr>
+        <tr>
+          <td><strong>3 · Wed</strong></td>
+          <td>Yarmouth → Chichester Hbr</td>
+          <td>~30 nm</td>
+          <td>~6 h</td>
+          <td><span class="badge badge-spring">Transitional</span></td>
+          <td><span style="color:var(--warn); font-weight:600;">Chichester Bar — cross on the rise, HW −3h to +1h; mainland lunch (DCA)</span></td>
+        </tr>
+        <tr>
+          <td><strong>4 · Thu</strong></td>
+          <td>Chichester → West Cowes</td>
+          <td>~22 nm</td>
+          <td>~4.4 h</td>
+          <td><span class="badge badge-neap">Near neaps ✓</span></td>
+          <td>Bar exit on the rise; Cowes chain ferry &amp; Medina ebb</td>
+        </tr>
+        <tr>
+          <td><strong>5 · Fri</strong></td>
+          <td>West Cowes → Gosport</td>
+          <td>~10 nm</td>
+          <td>~2 h</td>
+          <td><span class="badge badge-neap">Neap tides</span></td>
+          <td>Use E-going stream; QHM Portsmouth entry</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:12.5px; color:var(--muted); margin-top:10px;">Total ~95 nm over 5 days, entirely within the Solent — consistent with the Day Skipper cruising limit for both yachts. Tue &amp; Wed berths remain provisional.</p>
+  </div>
+
+  <!-- PORT TIDAL RANGES -->
+  <div class="summary-section">
+    <h2>Port Tidal Characteristics — Reference Data</h2>
+    <p style="font-size:13.5px; margin-bottom:16px;">Approximate mean heights based on UKHO Admiralty data. Actual heights for June 1–5 will fall between spring and neap values, depending on the day:</p>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+      <div style="background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(26,46,74,0.07);">
+        <div style="font-weight:700; color:var(--navy); margin-bottom:10px; font-size:14px;">⚓ Portsmouth (Standard Port)</div>
+        <div class="port-ranges">
+          <div class="range-card">
+            <div class="range-label">Springs HW</div>
+            <div class="range-hw">4.7 m</div>
+            <div class="range-lw">LW 0.8 m</div>
+            <div class="range-type">Range ~3.9 m</div>
+          </div>
+          <div class="range-card">
+            <div class="range-label">Neaps HW</div>
+            <div class="range-hw">3.8 m</div>
+            <div class="range-lw">LW 1.5 m</div>
+            <div class="range-type">Range ~2.3 m</div>
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--muted); margin-top:8px;">Portsmouth has a prolonged HW "stand" — the tide often remains near HW for 2–3 hours. Standard port for Gosport.</p>
+      </div>
+
+      <div style="background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(26,46,74,0.07);">
+        <div style="font-weight:700; color:var(--navy); margin-bottom:10px; font-size:14px;">⚓ Southampton (Double HW)</div>
+        <div class="port-ranges">
+          <div class="range-card">
+            <div class="range-label">Springs HW</div>
+            <div class="range-hw">4.5 m</div>
+            <div class="range-lw">LW 0.5 m</div>
+            <div class="range-type">Range ~4.0 m</div>
+          </div>
+          <div class="range-card">
+            <div class="range-label">Neaps HW</div>
+            <div class="range-hw">3.7 m</div>
+            <div class="range-lw">LW 1.8 m</div>
+            <div class="range-type">Range ~1.9 m</div>
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--muted); margin-top:8px;">Famous young-flood stand / double HW — a long, generous high-water window into the Hamble and Southampton Water.</p>
+      </div>
+
+      <div style="background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(26,46,74,0.07);">
+        <div style="font-weight:700; color:var(--navy); margin-bottom:10px; font-size:14px;">⚓ Chichester Harbour</div>
+        <div class="port-ranges">
+          <div class="range-card">
+            <div class="range-label">Springs HW</div>
+            <div class="range-hw">4.9 m</div>
+            <div class="range-lw">LW 0.7 m</div>
+            <div class="range-type">Range ~4.2 m</div>
+          </div>
+          <div class="range-card">
+            <div class="range-label">Neaps HW</div>
+            <div class="range-hw">4.0 m</div>
+            <div class="range-lw">LW 1.6 m</div>
+            <div class="range-type">Range ~2.4 m</div>
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--muted); margin-top:8px;">The <strong>Bar</strong> is the key gate — shallow and dangerous on the ebb in onshore wind. Cross on the rise, near HW. Strong streams in the entrance narrows.</p>
+      </div>
+
+      <div style="background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(26,46,74,0.07);">
+        <div style="font-weight:700; color:var(--navy); margin-bottom:10px; font-size:14px;">⚓ Cowes / Yarmouth (IoW)</div>
+        <div class="port-ranges">
+          <div class="range-card">
+            <div class="range-label">Springs HW</div>
+            <div class="range-hw">~4.2 m</div>
+            <div class="range-lw">LW ~0.8 m</div>
+            <div class="range-type">From Ptsmth corr.</div>
+          </div>
+          <div class="range-card">
+            <div class="range-label">Neaps HW</div>
+            <div class="range-hw">~3.5 m</div>
+            <div class="range-lw">LW ~1.5 m</div>
+            <div class="range-type">From Ptsmth corr.</div>
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--muted); margin-top:8px;">Secondary ports referenced from Portsmouth. Cowes: watch the chain ferry &amp; Medina ebb. Yarmouth: easy all-tide entry. Apply Almanac/UKHO corrections for precise times.</p>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var CFG={lat:50.77,lon:-1.30,start:"2026-06-01",end:"2026-06-05",
+    dates:["2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05"]};
+  var SEED={daily:{weather_code:[51,51,61,53,51],tmax:[17.2,17.7,17.3,17.3,17.7],tmin:[14.4,13.7,13.7,13.2,11.5],
+    wspd:[12.8,13.8,22.3,17.6,9.9],wgust:[25.1,27.4,43.2,38.3,20.8],wdir:[231,239,229,276,338],
+    precip:[2.3,0.9,13.6,6.6,1.4],pprob:[62,63,72,73,52],
+    sunrise:["04:57","04:56","04:55","04:55","04:54"],sunset:["21:08","21:09","21:10","21:11","21:12"]},
+    marine:{wave:[0.80,0.86,1.12,1.00,0.40]}};
+  var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var CARD=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  function card(d){return d==null||isNaN(d)?"—":CARD[Math.round(d/22.5)%16];}
+  function r0(n){return n==null||isNaN(n)?"–":Math.round(n);}
+  function bf(kn){if(kn==null||isNaN(kn))return"–";var t=[1,3,6,10,16,21,27,33,40,47];for(var i=0;i<t.length;i++){if(kn<=t[i])return"F"+i;}return"F10+";}
+  function wmo(c){var m={0:["☀️","Clear"],1:["🌤️","Mainly clear"],2:["⛅","Partly cloudy"],3:["☁️","Overcast"],45:["🌫️","Fog"],48:["🌫️","Rime fog"],51:["🌦️","Light drizzle"],53:["🌦️","Drizzle"],55:["🌧️","Heavy drizzle"],61:["🌧️","Light rain"],63:["🌧️","Rain"],65:["🌧️","Heavy rain"],71:["🌨️","Light snow"],73:["🌨️","Snow"],75:["❄️","Heavy snow"],80:["🌦️","Light showers"],81:["🌦️","Showers"],82:["⛈️","Violent showers"],95:["⛈️","Thunder"],96:["⛈️","Thunder + hail"],99:["⛈️","Thunder + hail"]};return m[c]||["🌡️","—"];}
+  function gustBadge(g){var cls=g>=28?"badge-warn":(g>=16?"badge-spring":"badge-neap");return '<span class="badge '+cls+'">'+r0(g)+' kn · '+bf(g)+(g>=28?' ⚠':'')+'</span>';}
+  function dlabel(iso){var d=new Date(iso+"T12:00:00");return DOW[d.getDay()]+" "+d.getDate();}
+  function render(D){
+    var dy=D.daily,wave=(D.marine&&D.marine.wave)||SEED.marine.wave,rows="",rough=[];
+    for(var i=0;i<CFG.dates.length;i++){
+      var sky=wmo(dy.weather_code[i]);
+      if(dy.wgust[i]!=null&&dy.wgust[i]>=28) rough.push(dlabel(CFG.dates[i])+" ("+r0(dy.wgust[i])+" kn "+bf(dy.wgust[i])+")");
+      rows+='<tr><td><strong>'+dlabel(CFG.dates[i])+'</strong></td><td>'+sky[0]+' '+sky[1]+'</td>'+
+        '<td>'+r0(dy.wspd[i])+' kn '+card(dy.wdir[i])+'</td><td>'+gustBadge(dy.wgust[i])+'</td>'+
+        '<td>'+(wave[i]!=null?wave[i].toFixed(1)+' m':'–')+'</td>'+
+        '<td>'+(dy.precip[i]!=null?dy.precip[i].toFixed(1):'0')+' mm · '+r0(dy.pprob[i])+'%</td>'+
+        '<td>'+r0(dy.tmax[i])+'° / '+r0(dy.tmin[i])+'°</td><td>'+dy.sunrise[i]+'–'+dy.sunset[i]+'</td></tr>';
+    }
+    document.getElementById("wxbody").innerHTML=rows;
+    var w=document.getElementById("wxwarn");
+    if(rough.length){w.style.display="";w.innerHTML='<div class="icon">⚠️</div><div><p><strong>Rough day(s): '+rough.join(", ")+'.</strong> Gusts ≥ F7 (28 kn) — reef early. The windiest day tends to coincide with the long Yarmouth → Chichester leg + bar, so treat that as the one most likely to need re-routing or a weather day.</p></div>';}
+    else {w.style.display="none";}
+  }
+  function qs(o){return Object.keys(o).map(function(k){return k+"="+encodeURIComponent(o[k]);}).join("&");}
+  function jget(u){return fetch(u,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});}
+  function hhmm(s){return s?s.split("T")[1].slice(0,5):"—";}
+  function status(t){document.getElementById("wxstatus").innerHTML=t;}
+  function live(){
+    var btn=document.getElementById("wxrefresh");btn.disabled=true;status("⏳ fetching live forecast…");
+    var common={latitude:CFG.lat,longitude:CFG.lon,wind_speed_unit:"kn",timezone:"Europe/London",start_date:CFG.start,end_date:CFG.end};
+    var fU="https://api.open-meteo.com/v1/forecast?"+qs(Object.assign({},common,{daily:"weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,precipitation_sum,precipitation_probability_max,sunrise,sunset"}));
+    var sU="https://marine-api.open-meteo.com/v1/marine?"+qs(Object.assign({},common,{daily:"wave_height_max"}));
+    Promise.all([jget(fU),jget(sU)]).then(function(r){
+      var d=r[0].daily,sea=r[1]&&r[1].daily;
+      render({daily:{weather_code:d.weather_code,tmax:d.temperature_2m_max,tmin:d.temperature_2m_min,wspd:d.wind_speed_10m_max,wgust:d.wind_gusts_10m_max,wdir:d.wind_direction_10m_dominant,precip:d.precipitation_sum,pprob:d.precipitation_probability_max,sunrise:(d.sunrise||[]).map(hhmm),sunset:(d.sunset||[]).map(hhmm)},marine:{wave:sea?sea.wave_height_max:SEED.marine.wave}});
+      status('🟢 Live · Open-Meteo — updated '+new Date().toLocaleString("en-GB",{weekday:"short",hour:"2-digit",minute:"2-digit"}));
+    }).catch(function(e){
+      render(SEED);
+      status('🟠 Offline — showing 28 May snapshot ('+e.message+')');
+    }).then(function(){btn.disabled=false;});
+  }
+  document.getElementById("wxrefresh").addEventListener("click",live);
+  render(SEED);status("snapshot 28 May — fetching live…");live();
+})();
+</script>
+
+<footer>
+  <p>Solent passage &amp; tidal planner prepared for <strong>Matt</strong> · Ex Southern Waveform · 1–5 June 2026 · All times BST (UTC+1)</p>
+  <p style="margin-top:6px;">Provisional itinerary — Tue &amp; Wed berths TBC. Always verify tide times and distances from authoritative sources before departure.<br>
+  Recommended: <a href="https://easytide.admiralty.co.uk" target="_blank">UKHO EasyTide</a> · <a href="https://www.tidetimes.org.uk" target="_blank">Tide Times UK</a> · Reeds Nautical Almanac · Chichester Harbour Conservancy (bar &amp; entrance advice)</p>
+</footer>
+
+</body>
+</html>
